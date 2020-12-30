@@ -1,4 +1,4 @@
-#link-object
+# link-object
 ---
 日常使用中，一般我们是没有办法访问到浅拷贝一个对象的子项的父对象的。
   
@@ -20,7 +20,7 @@
 > temp.a.x.z = 6;  
 > temp.b.w = 7;  
 >
->  // a Proxy Object with { _value: 7, _parent: Proxy[ Object Object ], etc.}  
+>  // 返回一个Proxy对象 { _value: 7, _parent: Proxy[ Object Object ], etc.}  
 >  console.log(temp.a.x.z.\_parent.\_parent.\_parent.b.w);  
 >  // 7  
 >  console.log(temp.a.x.z.\_parent.\_parent.\_parent.b.w.\_value);  

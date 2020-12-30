@@ -13,6 +13,7 @@ const defaultProxyObject = {
   _type: null,
   _link: ['root'],
 }
+const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_link'];
 
 // inner function definitions
 /**
@@ -20,17 +21,34 @@ const defaultProxyObject = {
  * @param { any } source Source array need to be copied
  * @return { any } a new target array
  */
-let copyArray = (source) => {
+let _copyArray = (source) => {
   let temp = [];
   for (const i of source) {
     if (i instanceof Array) {
-      temp.push(copyArray(i));
+      temp.push(_copyArray(i));
     }
     else {
       temp.push(i);
     }
   }
   return temp;
+}
+
+let _makeLinkList = (target, propertyKey, receiver) => {
+  // target seems redundant
+  // but it can't be removed because it will be illegal in JS language style
+  let linkList = [];
+  let tempNode = receiver;
+  while (tempNode._name) {
+    linkList.push(tempNode._name);
+    if (tempNode._parent) tempNode = tempNode._parent;
+    else {
+      linkList.reverse();
+      linkList.push(propertyKey);
+      break;
+    }
+  }
+  return linkList;
 }
 
 const linkObject = {
@@ -45,6 +63,10 @@ const linkObject = {
      * @param { any } value the value for key
      * @param { any } receiver it is the 'this' of the object itself
      */
+
+    // setter is banned
+    // because handler.defineProperty can replace setter
+    /*
     set(target, propertyKey, value, receiver) {
       // use handler for recursion
       // however, handler can't be used directly in inner function
@@ -58,25 +80,18 @@ const linkObject = {
         _name: propertyKey,
         _function: typeof value == 'function' ? value : undefined,
         _type: typeof value == 'function' ? 'function' : 'value',
-        // IIFE
-        _link: (() => {
-          let linkList = [];
-          let tempNode = receiver;
-          // make link index dictionary
-          while (tempNode._name) {
-            linkList.push(tempNode._name);
-            if (tempNode._parent) tempNode = tempNode._parent;
-            else {
-              linkList.reverse();
-              linkList.push(propertyKey);
-              break;
-            }
-          }
-          return linkList;
-        })(),
+        _link: _makeLinkList(target, propertyKey, receiver),
       }
-      if (value != null) Reflect.set(target, propertyKey, new Proxy(selfNode, handler), receiver);
+      if (value != null) {
+        Reflect.set(target, propertyKey, new Proxy(selfNode, handler), receiver);
+        return true;
+      }
+      if (attributeList.includes(propertyKey)) {
+        console.warn(`the key ${propertyKey} is conflict with inner key`);
+        return false;
+      }
     },
+    */
 
     /**
      * rewrite get method
@@ -104,38 +119,53 @@ const linkObject = {
     */
 
     /**
-     * rewrite effects from Object.defineProperty
-     * @param {*} target 
-     * @param {*} propertyKey 
-     * @param {*} descriptor 
+     * rewrite Object.defineProperty method
+     * CAUTIONS: it will redefine all setters in this Object
      */
-
-    /*
     defineProperty(target, propertyKey, descriptor) {
-      try {
-        let value = descriptor.value;
-        Reflect.defineProperty(target, propertyKey, {
-          value: {
-            _value: typeof value == 'function' ? undefined : value,
-            _parent: parentNode,
-            _name: propertyKey,
-            _function: typeof value == 'function' ? value : undefined,
-            _type: typeof value == 'function' ? 'function' : 'value'
-          }, ...defaultObjectConfigs
-        });
-      } catch (e) {
-        console.warn("defineProperty applies Error\n Error due to wrong parameters");
+      let handler = this;
+      if (attributeList.includes(propertyKey)) {
+        // conflict with initial propertyKey
+        console.warn(`Attempt to rewrite inner attribute ${propertyKey}`);
         return false;
+      } else {
+        Reflect.defineProperty(target, propertyKey, {
+          // use Proxy for recursion
+          value: new Proxy({
+            _value: typeof descriptor.value == 'function' ?
+              null : descriptor.value,
+            // cautious: the real _parent should be target itself
+            // when we define property, parent object is target
+            // attribute is parent[propertyKey]
+            _parent: target,
+            _name: propertyKey,
+            _function: typeof descriptor.value == 'function' ?
+              descriptor.value : null,
+            _type: typeof descriptor.value == 'function' ?
+              'function' : 'value',
+            _link: _makeLinkList(null, propertyKey, target),
+          }, handler),
+          ...defaultObjectConfigs
+        });
+        return true;
       }
-      return true;
-    }
-    */
+    },
   },
   init() {
     let handler = this.handler;
-    if (arguments.length == 0) return new Proxy(defaultProxyObject, handler);
+    // if (arguments.length == 0) return new Proxy(defaultProxyObject, handler);
+    if (arguments.length == 0) {
+      let temp = new Proxy(defaultProxyObject, handler);
+      // let temp = Object.assign(new Proxy(defaultProxyObject, handler));
+      return temp;
+    }
     else return new Proxy(arguments, handler);
+    // else return Object.assign(new Proxy(arguments, handler));
   }
+}
+
+function lObject() {
+
 }
 
 // for Node.js

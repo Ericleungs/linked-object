@@ -1,4 +1,4 @@
-#link-object:  
+# link-object:  
 ---
 Normally, we use Object without link, which means we use shallow copy to copy an new object but we can't access its parent object.  
 
