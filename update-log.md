@@ -1,5 +1,9 @@
 # Update Log （中文更新日志在下方）：
 
+### 00004 (Dec 31, 2020):
+> 1. I found that shallow copy will affect the another new object inherited the Proxy Object. So I thought I need to make an deep-copy-object function. (Using Object.assign temporarily)
+> 2. Make a new initialization method to pass the name of target variable for better using "_link"
+
 ### 00003 (Dec 30, 2020):
 > 1. I found when setter activated, defineProperty also would be activated. But defineProperty would not activated setter.
 On the contrary, "setter" is temporarily commented.
@@ -16,6 +20,10 @@ Inner "defineProperty" & "getter" is temporarily commented.
 
 ---
 ## 更新日志：
+
+### 00004（2020/12/31）：
+> 1. 因为浅拷贝了默认的模板对象，因此引用变量下的值变量是浅拷贝，这就导致新增一个linkObject的对象的时候，会共享上一个声明的linkObject的对象，目前暂时使用Object.assign做浅拷贝
+> 2. 新增了一个新的初始化方法，这个方法必须带有命名的变量的名字，这是为了索引链中的初始节点不是'root'而设置的。
 ### 00003（2020/12/30）：
 > 1. 我发现当触发setter的时候，handler里头的defineProperty的预设方法也会被触发，而反过来不会。综合考虑，暂时注释掉setter方法。
 > 2. 修复了link，link包括自身对象节点，而不仅仅是上一级索引

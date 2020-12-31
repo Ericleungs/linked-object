@@ -24,18 +24,24 @@ const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_lin
 let _copyArray = (source) => {
   let temp = [];
   for (const i of source) {
-    if (i instanceof Array) {
-      temp.push(_copyArray(i));
-    }
-    else {
-      temp.push(i);
-    }
+    if (i instanceof Array) temp.push(_copyArray(i));
+    else temp.push(i);
   }
   return temp;
 }
 
-let _makeLinkList = (target, propertyKey, receiver) => {
-  // target seems redundant
+/**
+ * copy an Object deeply
+ * @param { { any } } source the source Object to be copied
+ * @returns { any } a new Object copies the source object
+ */
+let copyObjectDeep = (source) => {
+  let temp = {}
+
+}
+
+let _makeLinkList = (_target, propertyKey, receiver) => {
+  // _target seems redundant
   // but it can't be removed because it will be illegal in JS language style
   let linkList = [];
   let tempNode = receiver;
@@ -101,7 +107,7 @@ const linkObject = {
      */
 
     // ban getter temporarily
-    /*
+
     get(target, propertyKey) {
       let excluded = ['_parent', '_name', '_value', '_function', '_type'];
       let callExcluded = true;
@@ -116,11 +122,12 @@ const linkObject = {
         target[propertyKey]['_value'] : target[propertyKey]['_function'];
       else return target[propertyKey];
     },
-    */
+
 
     /**
-     * rewrite Object.defineProperty method
-     * CAUTIONS: it will redefine all setters in this Object
+     * rewrite Object.defineProperty method  
+     * CAUTIONS:  
+     * it will trap all setters in this Object
      */
     defineProperty(target, propertyKey, descriptor) {
       let handler = this;
@@ -151,21 +158,28 @@ const linkObject = {
       }
     },
   },
+
   init() {
     let handler = this.handler;
-    // if (arguments.length == 0) return new Proxy(defaultProxyObject, handler);
     if (arguments.length == 0) {
-      let temp = new Proxy(defaultProxyObject, handler);
-      // let temp = Object.assign(new Proxy(defaultProxyObject, handler));
-      return temp;
+      // need to copy to reconstruct a new object
+      return new Proxy(Object.assign({}, defaultProxyObject), handler);
     }
-    else return new Proxy(arguments, handler);
-    // else return Object.assign(new Proxy(arguments, handler));
+    else return new Proxy(Object.assign({}, arguments), handler);
+  },
+
+  initWithName(name, ...source) {
+    if (typeof name != 'string') {
+      // console.error("Wrong variable name format detected");
+      throw Error("Wrong variable name format detected");
+    } else {
+      if (source.length == 0) {
+        let templateProxyObject = Object.assign({}, defaultProxyObject);
+        templateProxyObject._name = name;
+        return new Proxy(Object.assign({}, templateProxyObject));
+      }
+    }
   }
-}
-
-function lObject() {
-
 }
 
 // for Node.js
