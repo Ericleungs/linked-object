@@ -127,7 +127,7 @@ const linkObject = {
     // ban getter temporarily
     /*
     get(target, propertyKey) {
-      let excluded = ['_parent', '_name', '_value', '_function', '_type'];
+      let excluded = ['_parent', '_name', '_value', '_function', '_type', '_link'];
       let callExcluded = true;
       // Exclude the inner property key
       for (const i of excluded) {
@@ -185,7 +185,11 @@ const linkObject = {
     }
     else return new Proxy(Object.assign({}, arguments), handler);
   },
-
+  /**
+   * initialize an Object with name
+   * @param { String } name target Object 
+   * @param  {...any} source (Optional) Object to be add with _link
+   */
   initWithName(name, ...source) {
     let handler = this.handler;
     if (typeof name != 'string') {
