@@ -1,5 +1,7 @@
 # Update Log （中文更新日志在下方）：
 
+### 00005 (Jan 4, 2021):
+> 1. I attempt to call attempt by using "_link" with global JS function "eval". Get ready for getter.
 ### 00004 (Dec 31, 2020):
 > 1. I found that shallow copy will affect the another new object inherited the Proxy Object. So I thought I need to make an deep-copy-object function. (Using Object.assign temporarily)
 > 2. Make a new initialization method to pass the name of target variable for better using "_link"
@@ -21,6 +23,8 @@ Inner "defineProperty" & "getter" is temporarily commented.
 ---
 ## 更新日志：
 
+### 00005（2021/1/4）：
+> 1. 现在的想法是通过_link来做到getter的目的，这就是为什么要重新实现init并且带有name作为参数。为getter做准备。
 ### 00004（2020/12/31）：
 > 1. 因为浅拷贝了默认的模板对象，因此引用变量下的值变量是浅拷贝，这就导致新增一个linkObject的对象的时候，会共享上一个声明的linkObject的对象，目前暂时使用Object.assign做浅拷贝
 > 2. 新增了一个新的初始化方法，这个方法必须带有命名的变量的名字，这是为了索引链中的初始节点不是'root'而设置的。

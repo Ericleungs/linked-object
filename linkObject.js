@@ -16,12 +16,30 @@ const defaultProxyObject = {
 const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_link'];
 
 // inner function definitions
+
+/**
+ * inner function for getter  
+ * it needs to initialize with name  
+ * or will make error for mistaking caller
+ * @param { Array<any> } _link link to be called
+ * @returns { any } target Object
+ */
+let callLink = (_link) => {
+  let targetObject = _link[0];
+  let attributeLink = _link.slice(1, _link.length);
+  let attributeLinkStr = '';
+  for (const i of attributeLink) {
+    attributeLinkStr = attributeLinkStr.concat(`['${i}']`);
+  }
+  return eval(`${targetObject}${attributeLinkStr}`);
+}
+
 /**
  * copy an array deeply by using recursion
  * @param { any } source Source array need to be copied
  * @return { any } a new target array
  */
-let _copyArray = (source) => {
+const _copyArray = (source) => {
   let temp = [];
   for (const i of source) {
     if (i instanceof Array) temp.push(_copyArray(i));
@@ -35,12 +53,12 @@ let _copyArray = (source) => {
  * @param { { any } } source the source Object to be copied
  * @returns { any } a new Object copies the source object
  */
-let copyObjectDeep = (source) => {
+const _copyObjectDeep = (source) => {
   let temp = {}
 
 }
 
-let _makeLinkList = (_target, propertyKey, receiver) => {
+const _makeLinkList = (_target, propertyKey, receiver) => {
   // _target seems redundant
   // but it can't be removed because it will be illegal in JS language style
   let linkList = [];
@@ -107,7 +125,7 @@ const linkObject = {
      */
 
     // ban getter temporarily
-
+    /*
     get(target, propertyKey) {
       let excluded = ['_parent', '_name', '_value', '_function', '_type'];
       let callExcluded = true;
@@ -122,7 +140,7 @@ const linkObject = {
         target[propertyKey]['_value'] : target[propertyKey]['_function'];
       else return target[propertyKey];
     },
-
+    */
 
     /**
      * rewrite Object.defineProperty method  
@@ -169,14 +187,17 @@ const linkObject = {
   },
 
   initWithName(name, ...source) {
+    let handler = this.handler;
     if (typeof name != 'string') {
       // console.error("Wrong variable name format detected");
       throw Error("Wrong variable name format detected");
     } else {
       if (source.length == 0) {
-        let templateProxyObject = Object.assign({}, defaultProxyObject);
+        // let templateProxyObject = Object.assign({}, defaultProxyObject);
+        let templateProxyObject = JSON.parse(JSON.stringify(defaultProxyObject));
         templateProxyObject._name = name;
-        return new Proxy(Object.assign({}, templateProxyObject));
+        templateProxyObject._link = [name];
+        return new Proxy(Object.assign({}, templateProxyObject), handler);
       }
     }
   }
