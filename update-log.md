@@ -1,5 +1,9 @@
 # Update Log （中文更新日志在下方）：
 
+### 00006 (Jan 5, 2021):
+> 1. In node.js REPL, its getter will mistaken in calling "target" itself, while works functionally in Chrome(87.0.4280.88) Browser. So getter will be restarted in use, and amend some codes for better using.
+> 2. Complete deep object copy function by using recursion(It will be used in initialization of linkObject)
+
 ### 00005 (Jan 4, 2021):
 > 1. I attempt to call attempt by using "_link" with global JS function "eval". Get ready for getter.
 ### 00004 (Dec 31, 2020):
@@ -22,6 +26,10 @@ Inner "defineProperty" & "getter" is temporarily commented.
 
 ---
 ## 更新日志：
+
+### 00006（2021/1/5）：
+> 1. 在node.js的REPL交互环境中，linkObject的getter会出现反复调用的异常（但是在浏览器是正常使用），因此重新开放getter，并修正某些逻辑。
+> 2. 用递归设置了一个深拷贝函数，为初始化一个对象，将它变成linkObject对象做准备
 
 ### 00005（2021/1/4）：
 > 1. 现在的想法是通过_link来做到getter的目的，这就是为什么要重新实现init并且带有name作为参数。为getter做准备。

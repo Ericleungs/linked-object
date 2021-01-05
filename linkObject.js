@@ -1,6 +1,7 @@
-/**
+/*
  * Editor: Eric Leung
  * Created: 2020/12/25
+ * License: Apache License 2.0
  */
 
 // constant definitions
@@ -49,13 +50,18 @@ const _copyArray = (source) => {
 }
 
 /**
- * copy an Object deeply
+ * copy an Object deeply with recursion
  * @param { { any } } source the source Object to be copied
  * @returns { any } a new Object copies the source object
  */
 const _copyObjectDeep = (source) => {
-  let temp = {}
-
+  if (typeof source == 'object') {
+    let tempObj = Object.create({});
+    Object.assign(tempObj, source);
+    for (const i of Object.keys(source)) _copyObjectDeep(i);
+    return tempObj;
+  }
+  else return source;
 }
 
 const _makeLinkList = (_target, propertyKey, receiver) => {
@@ -81,53 +87,11 @@ const linkObject = {
    */
   handler: {
     /**
-     * rewrite set method
-     * @param { any } target target Object, root object generally
-     * @param { any } propertyKey the key in object
-     * @param { any } value the value for key
-     * @param { any } receiver it is the 'this' of the object itself
+     * getter will not be familiar to used in Node.js REPL
      */
-
-    // setter is banned
-    // because handler.defineProperty can replace setter
-    /*
-    set(target, propertyKey, value, receiver) {
-      // use handler for recursion
-      // however, handler can't be used directly in inner function
-      // the fact is that handler become "this"
-      // console.log(receiver);
-      let handler = this;
-      let parentNode = receiver;
-      let selfNode = {
-        _value: typeof value == 'function' ? undefined : value,
-        _parent: parentNode,
-        _name: propertyKey,
-        _function: typeof value == 'function' ? value : undefined,
-        _type: typeof value == 'function' ? 'function' : 'value',
-        _link: _makeLinkList(target, propertyKey, receiver),
-      }
-      if (value != null) {
-        Reflect.set(target, propertyKey, new Proxy(selfNode, handler), receiver);
-        return true;
-      }
-      if (attributeList.includes(propertyKey)) {
-        console.warn(`the key ${propertyKey} is conflict with inner key`);
-        return false;
-      }
-    },
-    */
-
-    /**
-     * rewrite get method
-     * @param { any } target target Object, root object generally
-     * @param { any } propertyKey the key need to be called
-     * @param { any } receiver the minium caller
-     */
-
-    // ban getter temporarily
-    /*
     get(target, propertyKey) {
-      let excluded = ['_parent', '_name', '_value', '_function', '_type', '_link'];
+      // in fact, target is node itself instead of the whole tree
+      let excluded = ['_parent', '_name', '_value', '_function', '_type'];
       let callExcluded = true;
       // Exclude the inner property key
       for (const i of excluded) {
@@ -136,11 +100,12 @@ const linkObject = {
           break;
         }
       }
-      if (callExcluded) return target[propertyKey]['_value'] ?
-        target[propertyKey]['_value'] : target[propertyKey]['_function'];
-      else return target[propertyKey];
+      if (callExcluded) return Reflect.get(target, propertyKey);
+      else {
+        if (target._type == 'function') return Reflect.get(target, '_function');
+        else return Reflect.get(target[propertyKey], '_value');
+      }
     },
-    */
 
     /**
      * rewrite Object.defineProperty method  
@@ -168,6 +133,7 @@ const linkObject = {
               descriptor.value : null,
             _type: typeof descriptor.value == 'function' ?
               'function' : 'value',
+            // 'null' is just a placeholder
             _link: _makeLinkList(null, propertyKey, target),
           }, handler),
           ...defaultObjectConfigs
@@ -181,9 +147,19 @@ const linkObject = {
     let handler = this.handler;
     if (arguments.length == 0) {
       // need to copy to reconstruct a new object
-      return new Proxy(Object.assign({}, defaultProxyObject), handler);
+      // return new Proxy(Object.assign({}, defaultProxyObject), handler);
+      return new Proxy(_copyObjectDeep(defaultProxyObject), handler);
     }
-    else return new Proxy(Object.assign({}, arguments), handler);
+    else if (arguments.length == 1) {
+      return new Proxy(_copyObjectDeep(arguments[0]), handler);
+    }
+    // else return new Proxy(Object.assign({}, arguments), handler);
+    // else return new Proxy(_copyObjectDeep(arguments), handler);
+    else {
+      let temp = [];
+      arguments.forEach(e => { temp.push(_copyObjectDeep(e)) });
+      return new Proxy(temp, handler);
+    }
   },
   /**
    * initialize an Object with name
@@ -193,15 +169,24 @@ const linkObject = {
   initWithName(name, ...source) {
     let handler = this.handler;
     if (typeof name != 'string') {
-      // console.error("Wrong variable name format detected");
       throw Error("Wrong variable name format detected");
     } else {
+      let templateProxyObject = Object.assign({}, defaultProxyObject);
+      templateProxyObject._name = name;
+      templateProxyObject._link = [name];
       if (source.length == 0) {
-        // let templateProxyObject = Object.assign({}, defaultProxyObject);
-        let templateProxyObject = JSON.parse(JSON.stringify(defaultProxyObject));
-        templateProxyObject._name = name;
-        templateProxyObject._link = [name];
         return new Proxy(Object.assign({}, templateProxyObject), handler);
+      }
+      else {
+        let px = null;
+        if (source.length == 1) {
+          px = new Proxy(_copyObjectDeep(source[0]), handler);
+        } else {
+          let temp = [];
+          source.forEach(e => { temp.push(_copyObjectDeep(e)) });
+          px = new Proxy(temp, handler);
+        }
+        return px;
       }
     }
   }
