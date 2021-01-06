@@ -16,7 +16,44 @@ const defaultProxyObject = {
 }
 const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_link'];
 
-// inner function definitions
+// inner functions
+
+/**
+ * Format an object with linkObject(by using recursion)
+ * @param { any } source 
+ * @param { string } name 
+ * @param { any } parent
+ * @returns { any } 
+ */
+const _copyLinkObject = (source, name, parent) => {
+  let tempProxyObject = Object.assign({}, defaultProxyObject);
+  tempProxyObject._parent = parent;
+  tempProxyObject._name = name;
+  // function
+  if (typeof source == 'function') {
+    tempProxyObject._type = 'function';
+    tempProxyObject._function = source;
+    return tempProxyObject;
+  }
+  // Array or Object
+  else if (source instanceof Array || typeof source == 'object') {
+    let nameSet = Object.keys(source);
+    for (const i in source) {
+      let singleName = nameSet[i];
+      Object.defineProperty(tempProxyObject, singleName, {
+        value: _copyLinkObject(source[i], name, source),
+        ...defaultObjectConfigs
+      });
+    }
+    return tempProxyObject;
+  }
+  // value
+  else {
+    tempProxyObject._type = 'value';
+    tempProxyObject._value = source;
+    return tempProxyObject;
+  }
+}
 
 /**
  * inner function for getter  
@@ -25,9 +62,9 @@ const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_lin
  * @param { Array<any> } _link link to be called
  * @returns { any } target Object
  */
-let callLink = (_link) => {
-  let targetObject = _link[0];
-  let attributeLink = _link.slice(1, _link.length);
+const callLink = (link) => {
+  let targetObject = link[0];
+  let attributeLink = link.slice(1, link.length);
   let attributeLinkStr = '';
   for (const i of attributeLink) {
     attributeLinkStr = attributeLinkStr.concat(`['${i}']`);
@@ -89,6 +126,7 @@ const linkObject = {
     /**
      * getter will not be familiar to used in Node.js REPL
      */
+    /*
     get(target, propertyKey) {
       // in fact, target is node itself instead of the whole tree
       let excluded = ['_parent', '_name', '_value', '_function', '_type'];
@@ -106,6 +144,7 @@ const linkObject = {
         else return Reflect.get(target[propertyKey], '_value');
       }
     },
+    */
 
     /**
      * rewrite Object.defineProperty method  
@@ -164,27 +203,27 @@ const linkObject = {
   /**
    * initialize an Object with name
    * @param { String } name target Object 
-   * @param  {...any} source (Optional) Object to be add with _link
+   * @param  { ...any } source (Optional) Object to be add with _link
    */
   initWithName(name, ...source) {
     let handler = this.handler;
     if (typeof name != 'string') {
       throw Error("Wrong variable name format detected");
     } else {
-      let templateProxyObject = Object.assign({}, defaultProxyObject);
-      templateProxyObject._name = name;
-      templateProxyObject._link = [name];
       if (source.length == 0) {
+        let templateProxyObject = Object.assign({}, defaultProxyObject);
+        templateProxyObject._name = name;
+        templateProxyObject._link = [name];
         return new Proxy(Object.assign({}, templateProxyObject), handler);
       }
       else {
         let px = null;
         if (source.length == 1) {
-          px = new Proxy(_copyObjectDeep(source[0]), handler);
+          px = new Proxy(_copyLinkObject(source[0], name, null), handler);
         } else {
-          let temp = [];
-          source.forEach(e => { temp.push(_copyObjectDeep(e)) });
-          px = new Proxy(temp, handler);
+          // with destructing assignment
+          name = Object.keys({ source })[0];
+          px = new Proxy(_copyLinkObject(source, name, null), handler);
         }
         return px;
       }

@@ -1,5 +1,9 @@
 # Update Log （中文更新日志在下方）：
 
+### 00007 (Jan 6, 2021):
+> 1. Reconstruct the method of "initWithName"
+> 2. new a inner method: _copyLinkObject, it is for copying deeply with the format from linkObject.
+
 ### 00006 (Jan 5, 2021):
 > 1. In node.js REPL, its getter will mistaken in calling "target" itself, while works functionally in Chrome(87.0.4280.88) Browser. So getter will be restarted in use, and amend some codes for better using.
 > 2. Complete deep object copy function by using recursion(It will be used in initialization of linkObject)
@@ -26,6 +30,10 @@ Inner "defineProperty" & "getter" is temporarily commented.
 
 ---
 ## 更新日志：
+
+### 00007（2021/1/6）：
+> 1. 重构了带名字初始化一个linkObject的方法: initWithName
+> 2. 新增了一个通过递归，以linkObject的格式，深拷贝对象的方法：_copyLinkObject
 
 ### 00006（2021/1/5）：
 > 1. 在node.js的REPL交互环境中，linkObject的getter会出现反复调用的异常（但是在浏览器是正常使用），因此重新开放getter，并修正某些逻辑。
