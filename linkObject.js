@@ -217,15 +217,8 @@ const linkObject = {
         return new Proxy(Object.assign({}, templateProxyObject), handler);
       }
       else {
-        let px = null;
-        if (source.length == 1) {
-          px = new Proxy(_copyLinkObject(source[0], name, null), handler);
-        } else {
-          // with destructing assignment
-          name = Object.keys({ source })[0];
-          px = new Proxy(_copyLinkObject(source, name, null), handler);
-        }
-        return px;
+        source = source.length == 1 ? source[0]: source;
+        return new Proxy(_copyLinkObject(source, name, null), handler);
       }
     }
   }
