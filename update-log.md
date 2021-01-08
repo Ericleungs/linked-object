@@ -1,5 +1,8 @@
 # Update Log （中文更新日志在下方）：
 
+### 00008 (Jan 8, 2021):
+> 1. make inner attributes(\_value, \_parent, \_value, \_function, \_link) non-enumerable
+
 ### 00007 (Jan 6, 2021):
 > 1. Reconstruct the method of "initWithName"
 > 2. new a inner method: _copyLinkObject, it is for copying deeply with the format from linkObject.
@@ -30,6 +33,9 @@ Inner "defineProperty" & "getter" is temporarily commented.
 
 ---
 ## 更新日志：
+
+### 00008（2020/1/8）：
+> 1. 让内部的属性(\_value, \_parent, \_value, \_function, \_link)不再被循环或者是被拷贝出来
 
 ### 00007（2021/1/6）：
 > 1. 重构了带名字初始化一个linkObject的方法: initWithName

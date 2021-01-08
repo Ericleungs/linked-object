@@ -6,7 +6,9 @@
 
 // constant definitions
 const defaultObjectConfigs = { writable: true, enumerable: true, configurable: true }
-const defaultProxyObject = {
+const nonEnumerableObjectConfigs = { writable: true, enumerable: false, configurable: true }
+/*
+let defaultProxyObject = {
   _value: null,
   _parent: null,
   _name: 'root',
@@ -14,6 +16,17 @@ const defaultProxyObject = {
   _type: null,
   _link: ['root'],
 }
+*/
+// IIFE
+const defaultProxyObject = {};
+Object.defineProperties(defaultProxyObject, {
+  '_value': { value: null, ...nonEnumerableObjectConfigs },
+  '_parent': { value: null, ...nonEnumerableObjectConfigs },
+  '_name': { value: 'root', ...nonEnumerableObjectConfigs },
+  '_function': { value: null, ...nonEnumerableObjectConfigs },
+  '_type': { value: null, ...nonEnumerableObjectConfigs },
+  '_link': { value: ['root'], ...nonEnumerableObjectConfigs }
+});
 const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_link'];
 
 // inner functions
@@ -175,7 +188,7 @@ const linkObject = {
             // 'null' is just a placeholder
             _link: _makeLinkList(null, propertyKey, target),
           }, handler),
-          ...defaultObjectConfigs
+          ...nonEnumerableObjectConfigs
         });
         return true;
       }
@@ -211,13 +224,15 @@ const linkObject = {
       throw Error("Wrong variable name format detected");
     } else {
       if (source.length == 0) {
-        let templateProxyObject = Object.assign({}, defaultProxyObject);
+        // let templateProxyObject = Object.assign({}, defaultProxyObject);
+        let templateProxyObject = defaultProxyObject;
+        console.log(templateProxyObject);
         templateProxyObject._name = name;
         templateProxyObject._link = [name];
-        return new Proxy(Object.assign({}, templateProxyObject), handler);
+        return new Proxy(templateProxyObject, handler);
       }
       else {
-        source = source.length == 1 ? source[0]: source;
+        source = source.length == 1 ? source[0] : source;
         return new Proxy(_copyLinkObject(source, name, null), handler);
       }
     }
