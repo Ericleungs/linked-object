@@ -1,5 +1,7 @@
 # Update Log （中文更新日志在下方）：
 
+### 00009 (Jan 13, 2021):
+> 1. Fix object creator working by IIFE function.
 ### 00008 (Jan 8, 2021):
 > 1. make inner attributes(\_value, \_parent, \_value, \_function, \_link) non-enumerable
 
@@ -34,6 +36,8 @@ Inner "defineProperty" & "getter" is temporarily commented.
 ---
 ## 更新日志：
 
+### 00009（2020/1/13）：
+> 1. 修复已知问题： IIFE函数只会执行一次，如果直接使用，会导致所有的创建linkObject的对象，陷入无限死循环之中。
 ### 00008（2020/1/8）：
 > 1. 让内部的属性(\_value, \_parent, \_value, \_function, \_link)不再被循环或者是被拷贝出来
 

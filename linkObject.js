@@ -6,7 +6,7 @@
 
 // constant definitions
 const defaultObjectConfigs = { writable: true, enumerable: true, configurable: true }
-const nonEnumerableObjectConfigs = { writable: true, enumerable: false, configurable: true }
+const nonEnumerable = { writable: true, enumerable: false, configurable: true }
 /*
 let defaultProxyObject = {
   _value: null,
@@ -18,15 +18,18 @@ let defaultProxyObject = {
 }
 */
 // IIFE
-const defaultProxyObject = {};
-Object.defineProperties(defaultProxyObject, {
-  '_value': { value: null, ...nonEnumerableObjectConfigs },
-  '_parent': { value: null, ...nonEnumerableObjectConfigs },
-  '_name': { value: 'root', ...nonEnumerableObjectConfigs },
-  '_function': { value: null, ...nonEnumerableObjectConfigs },
-  '_type': { value: null, ...nonEnumerableObjectConfigs },
-  '_link': { value: ['root'], ...nonEnumerableObjectConfigs }
-});
+const defaultProxyObject = () => {
+  let $i = Object.create({});
+  Object.defineProperties($i, {
+    '_value': { value: null, ...nonEnumerable },
+    '_parent': { value: null, ...nonEnumerable },
+    '_name': { value: 'root', ...nonEnumerable },
+    '_function': { value: null, ...nonEnumerable },
+    '_type': { value: null, ...nonEnumerable },
+    '_link': { value: ['root'], ...nonEnumerable }
+  });
+  return $i;
+}
 const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_link'];
 
 // inner functions
@@ -39,7 +42,8 @@ const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_lin
  * @returns { any } 
  */
 const _copyLinkObject = (source, name, parent) => {
-  let tempProxyObject = Object.assign({}, defaultProxyObject);
+  // let tempProxyObject = Object.assign({}, defaultProxyObject);
+  let tempProxyObject = defaultProxyObject();
   tempProxyObject._parent = parent;
   tempProxyObject._name = name;
   // function
@@ -173,6 +177,7 @@ const linkObject = {
       } else {
         Reflect.defineProperty(target, propertyKey, {
           // use Proxy for recursion
+          /*
           value: new Proxy({
             _value: typeof descriptor.value == 'function' ?
               null : descriptor.value,
@@ -188,7 +193,29 @@ const linkObject = {
             // 'null' is just a placeholder
             _link: _makeLinkList(null, propertyKey, target),
           }, handler),
-          ...nonEnumerableObjectConfigs
+          */
+          value: new Proxy(
+            (
+              () => {
+                let $i = defaultProxyObject();
+                $i._value = typeof descriptor.value == 'function' ?
+                  null : descriptor.value;
+                // cautious: the real _parent should be target itself
+                // when we define property, parent object is target
+                // attribute is parent[propertyKey]
+                $i._parent = target;
+                $i._name = propertyKey;
+                $i._function = typeof descriptor.value == 'function' ? 
+                  descriptor.value : null;
+                $i._type = typeof descriptor.value == 'function' ?
+                  'function': 'value';
+                $i._link = _makeLinkList(null, propertyKey, target);
+                return $i;
+              }
+            )(),
+            handler
+          ),
+          ...defaultObjectConfigs
         });
         return true;
       }
@@ -200,7 +227,8 @@ const linkObject = {
     if (arguments.length == 0) {
       // need to copy to reconstruct a new object
       // return new Proxy(Object.assign({}, defaultProxyObject), handler);
-      return new Proxy(_copyObjectDeep(defaultProxyObject), handler);
+      // return new Proxy(_copyObjectDeep(defaultProxyObject), handler);
+      return
     }
     else if (arguments.length == 1) {
       return new Proxy(_copyObjectDeep(arguments[0]), handler);
@@ -225,7 +253,7 @@ const linkObject = {
     } else {
       if (source.length == 0) {
         // let templateProxyObject = Object.assign({}, defaultProxyObject);
-        let templateProxyObject = defaultProxyObject;
+        let templateProxyObject = defaultProxyObject();
         console.log(templateProxyObject);
         templateProxyObject._name = name;
         templateProxyObject._link = [name];
