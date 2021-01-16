@@ -7,17 +7,8 @@
 // constant definitions
 const defaultObjectConfigs = { writable: true, enumerable: true, configurable: true }
 const nonEnumerable = { writable: true, enumerable: false, configurable: true }
-/*
-let defaultProxyObject = {
-  _value: null,
-  _parent: null,
-  _name: 'root',
-  _function: null,
-  _type: null,
-  _link: ['root'],
-}
-*/
-// IIFE
+
+// A function to build linkObject object instead of IIFE
 const defaultProxyObject = () => {
   let $i = Object.create({});
   Object.defineProperties($i, {
@@ -33,7 +24,6 @@ const defaultProxyObject = () => {
 const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_link'];
 
 // inner functions
-
 /**
  * Format an object with linkObject(by using recursion)
  * @param { any } source 
@@ -177,23 +167,6 @@ const linkObject = {
       } else {
         Reflect.defineProperty(target, propertyKey, {
           // use Proxy for recursion
-          /*
-          value: new Proxy({
-            _value: typeof descriptor.value == 'function' ?
-              null : descriptor.value,
-            // cautious: the real _parent should be target itself
-            // when we define property, parent object is target
-            // attribute is parent[propertyKey]
-            _parent: target,
-            _name: propertyKey,
-            _function: typeof descriptor.value == 'function' ?
-              descriptor.value : null,
-            _type: typeof descriptor.value == 'function' ?
-              'function' : 'value',
-            // 'null' is just a placeholder
-            _link: _makeLinkList(null, propertyKey, target),
-          }, handler),
-          */
           value: new Proxy(
             (
               () => {
