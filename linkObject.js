@@ -36,6 +36,7 @@ const _copyLinkObject = (source, name, parent) => {
   let tempProxyObject = defaultProxyObject();
   tempProxyObject._parent = parent;
   tempProxyObject._name = name;
+  tempProxyObject._link = _makeLinkList(null, name, tempProxyObject);
   // function
   if (typeof source == 'function') {
     tempProxyObject._type = 'function';
@@ -45,10 +46,10 @@ const _copyLinkObject = (source, name, parent) => {
   // Array or Object
   else if (source instanceof Array || typeof source == 'object') {
     let nameSet = Object.keys(source);
-    for (const i in source) {
-      let singleName = nameSet[i];
+    // for (const i in source) {
+    for (const singleName of nameSet) {
       Object.defineProperty(tempProxyObject, singleName, {
-        value: _copyLinkObject(source[i], name, source),
+        value: _copyLinkObject(source[singleName], singleName, tempProxyObject),
         ...defaultObjectConfigs
       });
     }
@@ -56,6 +57,7 @@ const _copyLinkObject = (source, name, parent) => {
   }
   // value
   else {
+    debugger;
     tempProxyObject._type = 'value';
     tempProxyObject._value = source;
     return tempProxyObject;
@@ -178,10 +180,10 @@ const linkObject = {
                 // attribute is parent[propertyKey]
                 $i._parent = target;
                 $i._name = propertyKey;
-                $i._function = typeof descriptor.value == 'function' ? 
+                $i._function = typeof descriptor.value == 'function' ?
                   descriptor.value : null;
                 $i._type = typeof descriptor.value == 'function' ?
-                  'function': 'value';
+                  'function' : 'value';
                 $i._link = _makeLinkList(null, propertyKey, target);
                 return $i;
               }

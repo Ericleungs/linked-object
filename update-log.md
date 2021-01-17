@@ -1,5 +1,9 @@
 # Update Log （中文更新日志在下方）：
 
+### 00010 (Jan 17, 2021):
+> 1. fix the bug when creating a linkObject object, will create impropriate target linkObject object.
+> 2. make a new bug: _link will make a name itself repetitively.
+
 ### 00009 (Jan 13, 2021):
 > 1. Fix object creator working by IIFE function.
 ### 00008 (Jan 8, 2021):
@@ -35,6 +39,10 @@ Inner "defineProperty" & "getter" is temporarily commented.
 
 ---
 ## 更新日志：
+
+### 00010（2020/1/17）：
+> 1. 修复了生成linkObject对象的时候，参数是个对象（就是想让一个对象通过initWithName转换成linkObject对象的时候），生成错误对象的问题。
+> 2. 留下了bug：linkObject对象中的_link属性会重复出现name
 
 ### 00009（2020/1/13）：
 > 1. 修复已知问题： IIFE函数只会执行一次，如果直接使用，会导致所有的创建linkObject的对象，陷入无限死循环之中。
