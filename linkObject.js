@@ -26,10 +26,10 @@ const attributeList = ['_value', '_parent', '_name', '_function', '_type', '_lin
 // inner functions
 /**
  * Format an object with linkObject(by using recursion)
- * @param { any } source 
- * @param { string } name 
- * @param { any } parent
- * @returns { any } 
+ * @param { any } source source object to be copied
+ * @param { string } name new attribute name
+ * @param { any } parent parent of new attribute
+ * @returns { any } return an object copied from source
  */
 const _copyLinkObject = (source, name, parent) => {
   // let tempProxyObject = Object.assign({}, defaultProxyObject);
@@ -57,7 +57,6 @@ const _copyLinkObject = (source, name, parent) => {
   }
   // value
   else {
-    debugger;
     tempProxyObject._type = 'value';
     tempProxyObject._value = source;
     return tempProxyObject;
@@ -110,17 +109,17 @@ const _copyObjectDeep = (source) => {
   else return source;
 }
 
-const _makeLinkList = (_target, propertyKey, receiver) => {
+const _makeLinkList = (_target, propertyKey, currentNode) => {
   // _target seems redundant
   // but it can't be removed because it will be illegal in JS language style
   let linkList = [];
-  let tempNode = receiver;
+  let tempNode = currentNode;
   while (tempNode._name) {
     linkList.push(tempNode._name);
     if (tempNode._parent) tempNode = tempNode._parent;
     else {
       linkList.reverse();
-      linkList.push(propertyKey);
+      // linkList.push(propertyKey);
       break;
     }
   }
@@ -169,8 +168,7 @@ const linkObject = {
       } else {
         Reflect.defineProperty(target, propertyKey, {
           // use Proxy for recursion
-          value: new Proxy(
-            (
+          value: new Proxy((
               () => {
                 let $i = defaultProxyObject();
                 $i._value = typeof descriptor.value == 'function' ?
@@ -184,7 +182,11 @@ const linkObject = {
                   descriptor.value : null;
                 $i._type = typeof descriptor.value == 'function' ?
                   'function' : 'value';
-                $i._link = _makeLinkList(null, propertyKey, target);
+                /**
+                 * _makeLinkList owns parameter: currentNode
+                 * which means the real target node currently is $i
+                 */
+                $i._link = _makeLinkList(null, propertyKey, $i);
                 return $i;
               }
             )(),
@@ -197,13 +199,15 @@ const linkObject = {
     },
   },
 
+  // will abandon in future
+  /*
   init() {
     let handler = this.handler;
     if (arguments.length == 0) {
       // need to copy to reconstruct a new object
       // return new Proxy(Object.assign({}, defaultProxyObject), handler);
       // return new Proxy(_copyObjectDeep(defaultProxyObject), handler);
-      return
+      return ;
     }
     else if (arguments.length == 1) {
       return new Proxy(_copyObjectDeep(arguments[0]), handler);
@@ -216,6 +220,8 @@ const linkObject = {
       return new Proxy(temp, handler);
     }
   },
+  */
+
   /**
    * initialize an Object with name
    * @param { String } name target Object 
