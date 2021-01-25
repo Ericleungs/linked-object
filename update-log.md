@@ -1,5 +1,11 @@
 # Update Log （中文更新日志在下方）：
 
+
+### 00012 (Jan 25, 2021):
+> 1. edit the readme.md doc
+> 2. add a es-lint syntax & format supervisor
+> 3. simplify some code
+
 ### 00011 (Jan 22, 2021):
 > 1. fix the when assigning \_link, it also create a redundant name
 > 2. I think it maybe cannot access exactly by using \_link & \_name. It needs to create a new unique flag: ID after considering a while.
@@ -44,6 +50,12 @@ Inner "defineProperty" & "getter" is temporarily commented.
 
 ---
 ## 更新日志：
+
+
+### 00012（2020/1/25）：
+> 1. 修改了readme文档的一些设置
+> 2. 新增es-lint的语法检测，后续也会继续新增规则
+> 3. 简化了一些代码
 
 ### 00011（2020/1/22）：
 > 1. 修复了\_link属性在赋值的时候，会重复出现目标的name问题

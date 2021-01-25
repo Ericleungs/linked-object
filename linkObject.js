@@ -36,7 +36,7 @@ const _copyLinkObject = (source, name, parent) => {
   let tempProxyObject = defaultProxyObject();
   tempProxyObject._parent = parent;
   tempProxyObject._name = name;
-  tempProxyObject._link = _makeLinkList(null, name, tempProxyObject);
+  tempProxyObject._link = _makeLinkList(tempProxyObject);
   // function
   if (typeof source == 'function') {
     tempProxyObject._type = 'function';
@@ -109,9 +109,7 @@ const _copyObjectDeep = (source) => {
   else return source;
 }
 
-const _makeLinkList = (_target, propertyKey, currentNode) => {
-  // _target seems redundant
-  // but it can't be removed because it will be illegal in JS language style
+const _makeLinkList = (currentNode) => {
   let linkList = [];
   let tempNode = currentNode;
   while (tempNode._name) {
@@ -168,7 +166,8 @@ const linkObject = {
       } else {
         Reflect.defineProperty(target, propertyKey, {
           // use Proxy for recursion
-          value: new Proxy((
+          value: new Proxy(
+            (
               () => {
                 let $i = defaultProxyObject();
                 $i._value = typeof descriptor.value == 'function' ?
@@ -186,7 +185,7 @@ const linkObject = {
                  * _makeLinkList owns parameter: currentNode
                  * which means the real target node currently is $i
                  */
-                $i._link = _makeLinkList(null, propertyKey, $i);
+                $i._link = _makeLinkList($i);
                 return $i;
               }
             )(),

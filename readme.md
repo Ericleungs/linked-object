@@ -11,7 +11,7 @@ Normally, we use Object without link, which means we use shallow copy to copy an
 It makes access parent object possible.
 
 > const linkObject = require('linkObject');  
-> var temp = linkObject.newObject();  
+> var temp = linkObject.initWithName('temp');  
 > temp.a = 1;  
 > temp.b = 2;  
 > temp.c = 3;  
@@ -40,7 +40,7 @@ The target is to use JS to rebuild a new Object using Proxy & Reflect (Supported
 该包的目的，就是使得访问父对象成为可能。  
 
 > const linkObject = require('linkObject');  
-> var temp = linkObject.newObject();  
+> var temp = linkObject.initWithName('temp');  
 > temp.a = 1;  
 > temp.b = 2;  
 > temp.c = 3;  
