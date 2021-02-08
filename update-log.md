@@ -1,5 +1,8 @@
 # Update Log （中文更新日志在下方）：
 
+### 00013 (Feb 8, 2021):
+> 1. Too busy from daily works in company(T^T), sorry for that.
+> 2. I try to build a method to revert linkObject into general Object. And I find that if node itself owns value or function, which will be ignored without an attribute to store it. So I try to store it with a new attribute: _self. However, it encounters a bug: Using the object reverted back to general can't be initialized with linkObject.initWithName(object_name, itself). It need to be fixed in the next time.
 
 ### 00012 (Jan 25, 2021):
 > 1. edit the readme.md doc
@@ -51,6 +54,9 @@ Inner "defineProperty" & "getter" is temporarily commented.
 ---
 ## 更新日志：
 
+### 00013（2020/2/8）：
+> 1. 工作有点忙，腾不出时间，实在很抱歉这一波
+> 2. 新增还原方法，将linkObject化的对象还原成一般的对象，但是对象中也有属性的，比如一个对象a，他有属性b和c，但是a本身也有一个值“1”，为了存储这个值，在还原的时候添加了一个不可遍历访问的属性：_self。但是这个方法也有bug，无法再将还原成一般对象格式的对象用initWithName初始化。下次更新会尝试修复它。
 
 ### 00012（2020/1/25）：
 > 1. 修改了readme文档的一些设置

@@ -166,29 +166,26 @@ const linkObject = {
       } else {
         Reflect.defineProperty(target, propertyKey, {
           // use Proxy for recursion
-          value: new Proxy(
-            (
-              () => {
-                let $i = defaultProxyObject();
-                $i._value = typeof descriptor.value == 'function' ?
-                  null : descriptor.value;
-                // cautious: the real _parent should be target itself
-                // when we define property, parent object is target
-                // attribute is parent[propertyKey]
-                $i._parent = target;
-                $i._name = propertyKey;
-                $i._function = typeof descriptor.value == 'function' ?
-                  descriptor.value : null;
-                $i._type = typeof descriptor.value == 'function' ?
-                  'function' : 'value';
-                /**
-                 * _makeLinkList owns parameter: currentNode
-                 * which means the real target node currently is $i
-                 */
-                $i._link = _makeLinkList($i);
-                return $i;
-              }
-            )(),
+          value: new Proxy((() => {
+            let $i = defaultProxyObject();
+            $i._value = typeof descriptor.value == 'function' ?
+              null : descriptor.value;
+            // cautious: the real _parent should be target itself
+            // when we define property, parent object is target
+            // attribute is parent[propertyKey]
+            $i._parent = target;
+            $i._name = propertyKey;
+            $i._function = typeof descriptor.value == 'function' ?
+              descriptor.value : null;
+            $i._type = typeof descriptor.value == 'function' ?
+              'function' : 'value';
+            /**
+             * _makeLinkList owns parameter: currentNode
+             * which means the real target node currently is $i
+             */
+            $i._link = _makeLinkList($i);
+            return $i;
+          })(),
             handler
           ),
           ...defaultObjectConfigs
@@ -244,6 +241,35 @@ const linkObject = {
         return new Proxy(_copyLinkObject(source, name, null), handler);
       }
     }
+  },
+
+  /**
+   * convert linked object into general object (Using recursion)  
+   * However, general object doesn't contain the attribute of self value  
+   * The value itself will be stored with name called "_self"  
+   * @param { linkObject } source source linkObject
+   * @returns { any } the source Object
+   */
+  returnToGeneral(source) {
+    let target = {};
+    // target._self = source._type == 'function' ? source._function : source._value;
+    Reflect.defineProperty(target, '_self', {
+      value: source._type == 'function' ? source._function : source._value,
+      ...nonEnumerable
+    });
+    if (Object.keys(source).length == 0) {
+      // approaches to leaf node
+      return source._type == 'function' ? source._function : source._value;
+    } else {
+      for (let i of Object.keys(source)) {
+        // target[`${i}`] = this.returnToGeneral(source[i]);
+        Reflect.defineProperty(target, `${i}`, {
+          value: this.returnToGeneral(source[i]),
+          ...defaultObjectConfigs
+        });
+      }
+    }
+    return target;
   }
 }
 
